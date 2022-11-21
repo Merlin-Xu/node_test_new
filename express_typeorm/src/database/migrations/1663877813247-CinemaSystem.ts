@@ -1,4 +1,9 @@
-import { MigrationInterface, QueryRunner } from 'typeorm';
+import {
+  MigrationInterface,
+  QueryRunner,
+  Table,
+  TableForeignKey,
+} from 'typeorm';
 
 export class CinemaSystem1663877813247 implements MigrationInterface {
   /**
@@ -31,7 +36,161 @@ export class CinemaSystem1663877813247 implements MigrationInterface {
    * As a cinema owner I dont want to configure the seating for every show
    */
   public async up(queryRunner: QueryRunner): Promise<void> {
-    throw new Error('TODO: implement migration in task 4');
+    await queryRunner.createTable(
+      new Table({
+        name: 'Customer',
+        columns: [
+          {
+            name: 'id',
+            isPrimary: true,
+            type: 'integer',
+            isGenerated: true,
+            generationStrategy: 'increment',
+          },
+          { name: 'name', type: 'varchar' },
+          { name: 'mobile', type: 'integer' },
+        ],
+      }),
+    );
+    await queryRunner.createTable(
+      new Table({
+        name: 'Order',
+        columns: [
+          {
+            name: 'orderId',
+            isPrimary: true,
+            type: 'integer',
+            isGenerated: true,
+            generationStrategy: 'increment',
+          },
+          { name: 'scheduleId', type: 'integer'},
+          { name: 'orderAdjustedPrice', type: 'double'},
+          { name: 'orderDate', type: 'timestamp'},
+        ],
+      }),
+    );
+    await queryRunner.createTable(
+      new Table({
+        name: 'order_seat',
+        columns: [
+          {
+            name: 'orderId', type: 'integer'
+          },
+          { name: 'scheduleId', type: 'integer' },
+        ],
+      }),
+    );
+    await queryRunner.createTable(
+      new Table({
+        name: 'schedule',
+        columns: [
+          {
+            name: 'scheduleId',
+            isPrimary: true,
+            type: 'integer',
+            isGenerated: true,
+            generationStrategy: 'increment',
+          },
+          { name: 'movieId', type: 'integer' },
+          { name: 'hallId', type: 'integer' },
+          { name: 'schedulePrice', type: 'double' },
+          {
+            name: 'createdAt',
+            type: 'timestamp',
+            default: 'CURRENT_TIMESTAMP',
+          },
+        ],
+      }),
+    );
+    await queryRunner.createTable(
+      new Table({
+        name: 'Movie',
+        columns: [
+          {
+            name: 'movieId',
+            isPrimary: true,
+            type: 'integer',
+            isGenerated: true,
+            generationStrategy: 'increment',
+          },
+          { name: 'name', type: 'varchar' },
+        ],
+      }),
+    );
+    await queryRunner.createTable(
+      new Table({
+        name: 'Hall',
+        columns: [
+          {
+            name: 'hallId',
+            isPrimary: true,
+            type: 'integer',
+            isGenerated: true,
+            generationStrategy: 'increment',
+          },
+          { name: 'seatCounts', type: 'integer' },
+          { name: 'hallName', type: 'varchar' },
+        ],
+      }),
+    );
+    await queryRunner.createTable(
+      new Table({
+        name: 'Seat',
+        columns: [
+          {
+            name: 'seatId',
+            isPrimary: true,
+            type: 'integer',
+            isGenerated: true,
+            generationStrategy: 'increment',
+          },
+          { name: 'hallId', type: 'integer' },
+          { name: 'seatRow', type: 'integer' },
+          { name: 'seatColumn', type: 'integer' },
+          { name: 'active', type: 'boolean' },
+        ],
+      }),
+    );
+    await queryRunner.createForeignKey(
+      'Order',
+      new TableForeignKey({
+        columnNames: ['customerId'],
+        referencedColumnNames: ['customerId'],
+        referencedTableName: 'Customer',
+      }),
+    );
+    await queryRunner.createForeignKey(
+      'Order',
+      new TableForeignKey({
+        columnNames: ['scheduleId'],
+        referencedColumnNames: ['scheduleId'],
+        referencedTableName: 'Schedule',
+      }),
+    );
+    await queryRunner.createForeignKey(
+      'Schedule',
+      new TableForeignKey({
+        columnNames: ['movieId'],
+        referencedColumnNames: ['movieId'],
+        referencedTableName: 'Movie',
+      }),
+    );
+    await queryRunner.createForeignKey(
+      'Schedule',
+      new TableForeignKey({
+        columnNames: ['hallId'],
+        referencedColumnNames: ['hallId'],
+        referencedTableName: 'Hall',
+      }),
+    );
+    await queryRunner.createForeignKey(
+      'Seat',
+      new TableForeignKey({
+        columnNames: ['hallId'],
+        referencedColumnNames: ['hallId'],
+        referencedTableName: 'Hall',
+      }),
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {}

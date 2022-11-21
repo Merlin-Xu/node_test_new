@@ -1,13 +1,16 @@
 import { Repository } from 'typeorm';
 import { Event } from './entities/event.entity';
+import { Workshop } from './entities/workshop.entity';
 import App from "../../app";
 
 
 export class EventsService {
   private eventRepository: Repository<Event>;
+  private workshopRepository: Repository<Workshop>;
 
   constructor(app: App) {
     this.eventRepository = app.getDataSource().getRepository(Event);
+    this.workshopRepository = app.getDataSource().getRepository(Workshop);
   }
 
   async getWarmupEvents() {
@@ -92,7 +95,7 @@ export class EventsService {
      */
 
   async getEventsWithWorkshops() {
-    throw new Error('TODO task 1');
+      return await this.eventRepository.find();
   }
 
   /* TODO: complete getFutureEventWithWorkshops so that it returns events with workshops, that have not yet started
@@ -161,7 +164,12 @@ export class EventsService {
     ]
     ```
      */
-  async getFutureEventWithWorkshops() {
-    throw new Error('TODO task 2');
+  async getFutureEventWithWorkshops(): Promise<any> {
+    const currentDate = new Date();
+    const qb = await this.eventRepository.createQueryBuilder("event");
+    const events = qb.where("event.id IN " + qb.subQuery.select("event.id").from(Event, "events").where("event.createdAt > :currentDate" + qb.subQuery().select("workshop").from(Workshop, "workshop").where("workshop.start > :currentDate").limit(1).getQuery()).getQuery())
+    .setParameter("currentDate", currentDate)
+    .getMany();
+    return events;
   }
 }
